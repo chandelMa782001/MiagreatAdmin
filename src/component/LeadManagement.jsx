@@ -5,6 +5,7 @@ const LeadManagement = () => {
   const [searchName, setSearchName] = useState('')
   const [selectedAssignTo, setSelectedAssignTo] = useState('')
   const [selectedLeads, setSelectedLeads] = useState([])
+  const [editingLead, setEditingLead] = useState(null)
   
   // Form state
   const [formData, setFormData] = useState({
@@ -69,10 +70,85 @@ const LeadManagement = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
-    // Add API call here
-    alert('Lead created successfully!')
+    
+    if (editingLead) {
+      // Update existing lead
+      const updatedLeads = leads.map(lead => {
+        if (lead.id === editingLead.id) {
+          return {
+            ...lead,
+            name: formData.name,
+            email: formData.email,
+            mobile: formData.mobile,
+            status: formData.status || 'Active',
+            followUp: formData.followUpDate && formData.followUpTime 
+              ? `${formData.followUpDate} ${formData.followUpTime}` 
+              : lead.followUp,
+            assignTo: users.find(u => u.id === formData.assignTo)?.name || lead.assignTo,
+            lastUpdate: new Date().toLocaleString()
+          }
+        }
+        return lead
+      })
+      
+      setLeads(updatedLeads)
+      alert('Lead updated successfully!')
+      setEditingLead(null)
+    } else {
+      // Create new lead
+      const newLead = {
+        id: leads.length + 1,
+        name: formData.name,
+        email: formData.email,
+        mobile: formData.mobile,
+        status: formData.status || 'Active',
+        followUp: formData.followUpDate && formData.followUpTime 
+          ? `${formData.followUpDate} ${formData.followUpTime}` 
+          : 'Not Set',
+        assignTo: users.find(u => u.id === formData.assignTo)?.name || 'Unassigned',
+        lastUpdate: new Date().toLocaleString(),
+        createdBy: 'Current User',
+        createdDate: new Date().toLocaleDateString()
+      }
+      
+      setLeads([...leads, newLead])
+      alert('Lead created successfully!')
+    }
+    
     handleReset()
+    setShowLeadForm(false)
+  }
+
+  const handleEdit = (lead) => {
+    setEditingLead(lead)
+    setFormData({
+      name: lead.name,
+      mobile: lead.mobile,
+      alternateMobile: '',
+      email: lead.email,
+      dob: '',
+      gender: '',
+      address1: '',
+      address2: '',
+      city: '',
+      state: '',
+      pincode: '',
+      status: lead.status,
+      source: '',
+      productType: '',
+      followUpDate: '',
+      followUpTime: '',
+      description: '',
+      assignTo: users.find(u => u.name === lead.assignTo)?.id || ''
+    })
+    setShowLeadForm(true)
+  }
+
+  const handleDelete = (leadId) => {
+    if (window.confirm('Are you sure you want to delete this lead?')) {
+      setLeads(leads.filter(lead => lead.id !== leadId))
+      alert('Lead deleted successfully!')
+    }
   }
 
   const handleReset = () => {
@@ -96,6 +172,7 @@ const LeadManagement = () => {
       description: '',
       assignTo: ''
     })
+    setEditingLead(null)
   }
 
   const handleLeadSelection = (leadId) => {
@@ -119,7 +196,20 @@ const LeadManagement = () => {
     }
     
     const assignedUser = users.find(u => u.id === selectedAssignTo)
-    console.log(`Assigning ${selectedLeads.length} leads to ${assignedUser.name}`)
+    
+    // Update selected leads with new assignment
+    const updatedLeads = leads.map(lead => {
+      if (selectedLeads.includes(lead.id)) {
+        return {
+          ...lead,
+          assignTo: assignedUser.name,
+          lastUpdate: new Date().toLocaleString()
+        }
+      }
+      return lead
+    })
+    
+    setLeads(updatedLeads)
     alert(`${selectedLeads.length} lead(s) assigned to ${assignedUser.name}`)
     setSelectedLeads([])
     setSelectedAssignTo('')
@@ -203,7 +293,7 @@ const LeadManagement = () => {
           className="w-full flex items-center justify-between p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
         >
           <span className="text-lg font-semibold text-indigo-700">
-            {showLeadForm ? 'Hide' : 'Create New Lead'}
+            {showLeadForm ? 'Hide' : editingLead ? 'Edit Lead' : 'Create New Lead'}
           </span>
           <svg 
             className={`w-6 h-6 text-indigo-700 transform transition-transform ${showLeadForm ? 'rotate-180' : ''}`} 
@@ -477,7 +567,7 @@ const LeadManagement = () => {
                 type="submit"
                 className="flex-1 px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold text-lg rounded-lg transition-colors"
               >
-                Save
+                {editingLead ? 'Update Lead' : 'Save'}
               </button>
               <button
                 type="button"
@@ -524,6 +614,24 @@ const LeadManagement = () => {
                   <p className="text-gray-700"><span className="font-semibold">Last Update:</span> {lead.lastUpdate}</p>
                   <div className="flex items-center space-x-2">
                     <span className="font-semibold text-gray-700">Action:</span>
+                    <button 
+                      onClick={() => handleEdit(lead)}
+                      className="px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center space-x-1 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span>Edit</span>
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(lead.id)}
+                      className="px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded flex items-center space-x-1 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Delete</span>
+                    </button>
                     <button className="px-4 py-1 bg-gray-800 hover:bg-gray-900 text-white rounded flex items-center space-x-1 transition-colors">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
