@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './component/Login'
-import Dashboard from './component/Dashboard'
+import Dashboard from './component/Dashboard_new'
 
 const App = () => {
   return (

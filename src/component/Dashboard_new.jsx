@@ -5,6 +5,7 @@ import CategoryManagement from './categories/CategoryManagement'
 import PlotCategory from './categories/PlotCategory'
 import Subcategory from './categories/Subcategory'
 import CareerCategory from './categories/CareerCategory'
+import LeadManagement from './LeadManagement'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -141,15 +142,16 @@ const Dashboard = () => {
     { name: 'Project', icon: '🏗️', submenu: true },
     { name: 'Location', icon: '📍', submenu: true },
     { name: 'User', icon: '👤', submenu: true },
-    { name: 'Lead Assignment', icon: '🎯' },
+    { name: 'Lead Management', icon: '🎯' },
+    { name: 'Lead Assignment', icon: '📊' },
     { name: 'Slider', icon: '🎛️' },
-    { name: 'Enquiry', icon: '💬' },
+    { name: 'Enquiry', icon: '�' },
     { name: 'Contact', icon: '📞' },
     { name: 'Help Center', icon: '❓' },
     { name: 'Career Category', icon: '💼' },
-    { name: 'Blog', icon: '📝' },
-    { name: 'Newsletter', icon: '📧' },
-    { name: 'Feedback', icon: '💭' },
+    { name: 'Blog', icon: '�' },
+    { name: 'Newsletter', icon: '�' },
+    { name: 'Feedback', icon: '�' },
     { name: 'Advertisement', icon: '📢' },
     { name: 'Post Requirement', icon: '📋' }
   ]
@@ -164,6 +166,8 @@ const Dashboard = () => {
         return <Subcategory />
       case 'Career Category':
         return <CareerCategory />
+      case 'Lead Management':
+        return <LeadManagement />
       case 'Lead Assignment':
         return renderLeadAssignmentContent()
       default:
