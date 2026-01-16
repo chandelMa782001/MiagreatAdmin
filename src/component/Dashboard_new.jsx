@@ -33,7 +33,7 @@ const Dashboard = () => {
   })
 
   // Sample data for leads and dealers
-  const [leads] = useState([
+  const [leads, setLeads] = useState([
     {
       id: 1,
       customerName: 'John Doe',
@@ -71,6 +71,21 @@ const Dashboard = () => {
       assignedTo: null
     }
   ])
+
+  // Form data for new lead creation
+  const [newLeadForm, setNewLeadForm] = useState({
+    customerName: '',
+    phone: '',
+    email: '',
+    propertyType: '',
+    location: '',
+    budget: '',
+    status: 'New',
+    source: '',
+    dealerId: '',
+    followUpDate: '',
+    notes: ''
+  })
 
   const [dealers] = useState([
     { id: 'dealer1', name: 'Rajesh Kumar', phone: '+91-9999111111', area: 'Gurgaon', rating: 4.8 },
@@ -113,18 +128,96 @@ const Dashboard = () => {
     }
     
     const dealer = dealers.find(d => d.id === assignmentData.dealerId)
-    console.log('Assigning lead:', {
-      leadId: selectedLead.id,
-      customerName: selectedLead.customerName,
-      dealerName: dealer.name,
-      priority: assignmentData.priority,
-      notes: assignmentData.notes
+    
+    // Update the lead with assignment
+    const updatedLeads = leads.map((lead) => {
+      if (lead.id === selectedLead.id) {
+        return {
+          ...lead,
+          assignedTo: dealer.name,
+          priority: assignmentData.priority
+        }
+      }
+      return lead
     })
     
-    // Here you would typically make an API call to assign the lead
+    setLeads(updatedLeads)
     alert(`Lead assigned to ${dealer.name} successfully!`)
     setShowAssignModal(false)
     setSelectedLead(null)
+  }
+
+  const handleNewLeadSubmit = (e) => {
+    e.preventDefault()
+    
+    // Validate required fields
+    if (!newLeadForm.customerName || !newLeadForm.phone || !newLeadForm.propertyType || !newLeadForm.location || !newLeadForm.budget) {
+      alert('Please fill all required fields')
+      return
+    }
+
+    // Get dealer name if assigned
+    const assignedDealer = newLeadForm.dealerId 
+      ? dealers.find(d => d.id === newLeadForm.dealerId)?.name 
+      : null
+
+    // Create new lead
+    const newLead = {
+      id: leads.length + 1,
+      customerName: newLeadForm.customerName,
+      phone: newLeadForm.phone,
+      email: newLeadForm.email,
+      propertyType: newLeadForm.propertyType,
+      location: newLeadForm.location,
+      budget: newLeadForm.budget,
+      status: newLeadForm.status,
+      date: new Date().toISOString().split('T')[0],
+      assignedTo: assignedDealer
+    }
+
+    // Add to leads list
+    setLeads([...leads, newLead])
+    
+    // Reset form
+    setNewLeadForm({
+      customerName: '',
+      phone: '',
+      email: '',
+      propertyType: '',
+      location: '',
+      budget: '',
+      status: 'New',
+      source: '',
+      dealerId: '',
+      followUpDate: '',
+      notes: ''
+    })
+    
+    setShowLeadForm(false)
+    alert('Lead created successfully!')
+  }
+
+  const handleNewLeadChange = (field, value) => {
+    setNewLeadForm(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleClearForm = () => {
+    setNewLeadForm({
+      customerName: '',
+      phone: '',
+      email: '',
+      propertyType: '',
+      location: '',
+      budget: '',
+      status: 'New',
+      source: '',
+      dealerId: '',
+      followUpDate: '',
+      notes: ''
+    })
   }
 
   const handleAssignmentChange = (field, value) => {
@@ -195,7 +288,7 @@ const Dashboard = () => {
         {/* Collapsible Form */}
         {showLeadForm && (
           <div className="border-t pt-4 animate-in slide-in-from-top-2 duration-300">
-            <form className="space-y-4">
+            <form onSubmit={handleNewLeadSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Customer Information */}
                 <div className="space-y-4">
@@ -204,29 +297,41 @@ const Dashboard = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name <span className="text-red-500">*</span></label>
                     <input
                       type="text"
+                      value={newLeadForm.customerName}
+                      onChange={(e) => handleNewLeadChange('customerName', e.target.value)}
                       placeholder="Enter customer name"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number <span className="text-red-500">*</span></label>
                     <input
                       type="tel"
+                      value={newLeadForm.phone}
+                      onChange={(e) => handleNewLeadChange('phone', e.target.value)}
                       placeholder="+91-9999999999"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                     <input
                       type="email"
+                      value={newLeadForm.email}
+                      onChange={(e) => handleNewLeadChange('email', e.target.value)}
                       placeholder="customer@example.com"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Lead Source</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <select 
+                      value={newLeadForm.source}
+                      onChange={(e) => handleNewLeadChange('source', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
                       <option value="">Select source...</option>
                       <option value="website">Website</option>
                       <option value="referral">Referral</option>
@@ -243,47 +348,66 @@ const Dashboard = () => {
                   <h4 className="font-medium text-gray-700 border-b pb-2">Property Requirements</h4>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Property Type <span className="text-red-500">*</span></label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <select 
+                      value={newLeadForm.propertyType}
+                      onChange={(e) => handleNewLeadChange('propertyType', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      required
+                    >
                       <option value="">Select property type...</option>
-                      <option value="apartment">Apartment</option>
-                      <option value="villa">Villa</option>
-                      <option value="plot">Plot</option>
-                      <option value="commercial">Commercial</option>
-                      <option value="office">Office Space</option>
-                      <option value="warehouse">Warehouse</option>
+                      <option value="Apartment">Apartment</option>
+                      <option value="Villa">Villa</option>
+                      <option value="Plot">Plot</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Office Space">Office Space</option>
+                      <option value="Warehouse">Warehouse</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Location <span className="text-red-500">*</span></label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <select 
+                      value={newLeadForm.location}
+                      onChange={(e) => handleNewLeadChange('location', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      required
+                    >
                       <option value="">Select location...</option>
-                      <option value="gurgaon">Gurgaon</option>
-                      <option value="delhi">Delhi</option>
-                      <option value="noida">Noida</option>
-                      <option value="faridabad">Faridabad</option>
-                      <option value="ghaziabad">Ghaziabad</option>
+                      <option value="Gurgaon">Gurgaon</option>
+                      <option value="Delhi">Delhi</option>
+                      <option value="Noida">Noida</option>
+                      <option value="Faridabad">Faridabad</option>
+                      <option value="Ghaziabad">Ghaziabad</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Budget Range <span className="text-red-500">*</span></label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <select 
+                      value={newLeadForm.budget}
+                      onChange={(e) => handleNewLeadChange('budget', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      required
+                    >
                       <option value="">Select budget range...</option>
-                      <option value="25-40">₹25-40 Lakhs</option>
-                      <option value="40-60">₹40-60 Lakhs</option>
-                      <option value="60-80">₹60-80 Lakhs</option>
-                      <option value="80-100">₹80-100 Lakhs</option>
-                      <option value="1-2">₹1-2 Crores</option>
-                      <option value="2-5">₹2-5 Crores</option>
-                      <option value="5+">₹5+ Crores</option>
+                      <option value="₹25-40 Lakhs">₹25-40 Lakhs</option>
+                      <option value="₹40-60 Lakhs">₹40-60 Lakhs</option>
+                      <option value="₹60-80 Lakhs">₹60-80 Lakhs</option>
+                      <option value="₹80-100 Lakhs">₹80-100 Lakhs</option>
+                      <option value="₹1-2 Crores">₹1-2 Crores</option>
+                      <option value="₹2-5 Crores">₹2-5 Crores</option>
+                      <option value="₹5+ Crores">₹5+ Crores</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Lead Priority</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                      <option value="new">New</option>
-                      <option value="warm">Warm</option>
-                      <option value="hot">Hot</option>
-                      <option value="urgent">Urgent</option>
+                    <select 
+                      value={newLeadForm.status}
+                      onChange={(e) => handleNewLeadChange('status', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value="New">New</option>
+                      <option value="Warm">Warm</option>
+                      <option value="Hot">Hot</option>
+                      <option value="Urgent">Urgent</option>
                     </select>
                   </div>
                 </div>
@@ -295,7 +419,11 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Dealer</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <select 
+                      value={newLeadForm.dealerId}
+                      onChange={(e) => handleNewLeadChange('dealerId', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
                       <option value="">Auto-assign or select dealer...</option>
                       {dealers.map((dealer) => (
                         <option key={dealer.id} value={dealer.id}>
@@ -308,6 +436,8 @@ const Dashboard = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Follow-up Date</label>
                     <input
                       type="date"
+                      value={newLeadForm.followUpDate}
+                      onChange={(e) => handleNewLeadChange('followUpDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
@@ -316,6 +446,8 @@ const Dashboard = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions / Notes</label>
                   <textarea
                     rows={3}
+                    value={newLeadForm.notes}
+                    onChange={(e) => handleNewLeadChange('notes', e.target.value)}
                     placeholder="Add any special requirements, preferences, or notes about this lead..."
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
                   />
@@ -332,12 +464,14 @@ const Dashboard = () => {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setShowLeadForm(false)}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors"
                 >
-                  Save as Draft
+                  Cancel
                 </button>
                 <button
                   type="button"
+                  onClick={handleClearForm}
                   className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Clear Form
