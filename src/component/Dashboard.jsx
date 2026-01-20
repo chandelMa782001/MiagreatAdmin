@@ -145,7 +145,15 @@ const Dashboard = () => {
         { name: 'Subcategory', icon: '📄' }
       ]
     },
-    { name: 'Project', icon: '🏗️', submenu: true },
+    { name: 'Project', icon: '🏗️', submenu: true,
+      subItems: [
+        { name: 'Project', icon: '🏗️' },
+        { name: 'New Project', icon: '🆕' },
+        { name: 'Sold Out Project', icon: '🔴' },
+        { name: 'Hot Deal Project', icon: '🔥' },
+        { name: 'User Project', icon: '👤' }
+      ]
+     },
     { name: 'Location', icon: '📍', submenu: true },
     { name: 'User', icon: '👤', submenu: true },
     { name: 'Lead Assignment', icon: '🎯' },

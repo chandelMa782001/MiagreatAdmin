@@ -6,11 +6,13 @@ import PlotCategory from './categories/PlotCategory'
 import Subcategory from './categories/Subcategory'
 import CareerCategory from './categories/CareerCategory'
 import LeadManagement from './LeadManagement'
+import NewProject from './NewProject'
 
 const Dashboard = () => {
   const navigate = useNavigate()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [activeMenu, setActiveMenu] = useState('Dashboard')
+  const [expandedMenus, setExpandedMenus] = useState({})
 
   // Search functionality states
   const [searchData, setSearchData] = useState({
@@ -96,6 +98,17 @@ const Dashboard = () => {
 
   const handleLogout = () => {
     navigate('/login')
+  }
+
+  const handleMenuClick = (menuName, hasSubmenu = false) => {
+    if (hasSubmenu) {
+      setExpandedMenus(prev => ({
+        ...prev,
+        [menuName]: !prev[menuName]
+      }))
+    } else {
+      setActiveMenu(menuName)
+    }
   }
 
   const handleSearchChange = (field, value) => {
@@ -232,7 +245,15 @@ const Dashboard = () => {
     { name: 'Category', icon: '📂', submenu: true },
     { name: 'Plot Category', icon: '🏞️' },
     { name: 'Subcategory', icon: '📋' },
-    { name: 'Project', icon: '🏗️', submenu: true },
+    { name: 'Project', icon: '🏗️', submenu: true,
+      subItems: [
+        { name: 'Project', icon: '🏗️' },
+        { name: 'New Project', icon: '🆕' },
+        { name: 'Sold Out Project', icon: '🔴' },
+        { name: 'Hot Deal Project', icon: '🔥' },
+        { name: 'User Project', icon: '👤' }
+      ]
+    },
     { name: 'Location', icon: '📍', submenu: true },
     { name: 'User', icon: '👤', submenu: true },
     { name: 'Lead Management', icon: '🎯' },
@@ -261,6 +282,8 @@ const Dashboard = () => {
         return <CareerCategory />
       case 'Lead Management':
         return <LeadManagement />
+      case 'New Project':
+        return <NewProject />
       case 'Lead Assignment':
         return renderLeadAssignmentContent()
       default:
@@ -783,9 +806,9 @@ const Dashboard = () => {
           {menuItems.map((item, index) => (
             <div key={index}>
               <button
-                onClick={() => setActiveMenu(item.name)}
+                onClick={() => handleMenuClick(item.name, item.submenu)}
                 className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                  activeMenu === item.name
+                  activeMenu === item.name || (item.subItems && item.subItems.some(subItem => activeMenu === subItem.name))
                     ? 'bg-green-50 text-green-700 border-r-2 border-green-500'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
@@ -795,11 +818,31 @@ const Dashboard = () => {
                   <span>{item.name}</span>
                 </div>
                 {item.submenu && (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-4 h-4 transition-transform duration-200 ${expandedMenus[item.name] ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 )}
               </button>
+              
+              {/* Submenu Items */}
+              {item.submenu && item.subItems && expandedMenus[item.name] && (
+                <div className="ml-6 mt-1 space-y-1">
+                  {item.subItems.map((subItem, subIndex) => (
+                    <button
+                      key={subIndex}
+                      onClick={() => setActiveMenu(subItem.name)}
+                      className={`w-full flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                        activeMenu === subItem.name
+                          ? 'bg-green-100 text-green-800 border-l-2 border-green-500'
+                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                      }`}
+                    >
+                      <span className="text-base">{subItem.icon}</span>
+                      <span>{subItem.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </nav>

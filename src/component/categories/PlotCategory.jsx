@@ -14,7 +14,8 @@ const PlotCategory = () => {
     size: '',
     location: '',
     price: '',
-    description: ''
+    description: '',
+    image: null
   })
 
   const handleAddPlot = (e) => {
@@ -27,12 +28,24 @@ const PlotCategory = () => {
       size: newPlot.size,
       location: newPlot.location,
       price: newPlot.price,
-      status: 'Available'
+      status: 'Available',
+      image: newPlot.image
     }
 
     setPlots([...plots, plot])
-    setNewPlot({ name: '', size: '', location: '', price: '', description: '' })
+    setNewPlot({ name: '', size: '', location: '', price: '', description: '', image: null })
     setShowAddForm(false)
+  }
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setNewPlot({...newPlot, image: e.target.result})
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   return (
@@ -160,6 +173,28 @@ const PlotCategory = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
+                Plot Image
+              </label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                {newPlot.image && (
+                  <div className="mt-2">
+                    <img
+                      src={newPlot.image}
+                      alt="Plot preview"
+                      className="w-32 h-24 object-cover rounded-md border border-gray-300"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
               <textarea
@@ -197,6 +232,9 @@ const PlotCategory = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Image
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Plot Details
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -219,6 +257,19 @@ const PlotCategory = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {plots.map((plot) => (
                 <tr key={plot.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {plot.image ? (
+                      <img
+                        src={plot.image}
+                        alt={plot.name}
+                        className="w-16 h-12 object-cover rounded-md border border-gray-300"
+                      />
+                    ) : (
+                      <div className="w-16 h-12 bg-gray-100 rounded-md border border-gray-300 flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">No Image</span>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{plot.name}</div>
                   </td>
